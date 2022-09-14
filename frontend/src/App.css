@@ -1,0 +1,89 @@
+@import '~antd/dist/antd.css';
+
+.ant-layout {
+  min-height: 90vh;
+  height: 100%;
+}
+
+.ant-layout-header{
+  padding: 0 15px;
+  background: #00b3ff;
+  /* color: #ffbf00; */
+}
+
+.ant-layout-footer{
+  padding: 12px 50px;
+}
+
+.ant-drawer-body {
+  padding: 0;
+}
+
+.ant-popover-title{
+  color: rgba(255, 255, 255, 0.65);
+  background-color: #001529;
+}
+
+.ant-popover-inner-content{
+  padding: 0;
+}
+.ant-table.ant-table-small {
+  font-size: 13px;
+  margin: -4px -4px;
+}
+
+.ant-table-thead>tr>th{
+  text-align:center;
+  color: #351fda;
+  /* background-color: #b1bec3; */
+  
+  }
+
+.ant-table.ant-table-small .ant-table-tbody>tr>td{
+  padding: 0 8px;
+}
+
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+.label-header{
+  color: #035519;
+  font-size: medium;
+  font-weight: bold;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #fff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
