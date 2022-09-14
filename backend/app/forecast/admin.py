@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Item, UnitOfMeasure, ItemCategory, Vendor, Contact, Person, Phone,  VendorForecastEntry, MRPJournalLine, MRPJournalBatch, JournalBatch, VendorForecastBatch
+from .models import (Item, UnitOfMeasure, ItemCategory, Vendor, Contact, Person, Phone,
+                     VendorForecastLine, MRPJournalLine, MRPJournalBatch, JournalBatch, VendorForecastBatch)
 
 
 @admin.register(JournalBatch)
@@ -39,9 +40,9 @@ class MRPJournalLineAdmin(admin.ModelAdmin):
                     'description', 'kb_sd', 'due_date', 'quantity', 'created_by']
 
 
-@admin.register(VendorForecastEntry)
-class VendorForecastEntryAdmin(admin.ModelAdmin):
-    list_display = [f.name for f in VendorForecastEntry._meta.get_fields()]
+# @admin.register(VendorForecastLine)
+# class VendorForecastLineAdmin(admin.ModelAdmin):
+#     list_display = [f.name for f in VendorForecastLine._meta.get_fields()]
 
 
 @admin.register(Vendor)

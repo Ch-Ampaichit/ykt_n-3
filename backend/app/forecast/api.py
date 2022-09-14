@@ -7,10 +7,10 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 
-from .serializers import (ItemSerializer, MRPJournalBatchSerializer, VendorSerializer, VendorForecastEntrySerializer,
+from .serializers import (ItemSerializer, MRPJournalBatchSerializer, VendorSerializer, VendorForecastLineSerializer,
                           ItemCategorySerializer, UnitOfMeasureSerializer, JournalBatchSerializer, PhoneSerializer,
                           MRPJournalLineSerializer, PersonSerializer, ContactSerializer)
-from .models import (Item, MRPJournalBatch, Vendor, VendorForecastBatch, VendorForecastEntry, Contact,
+from .models import (Item, MRPJournalBatch, Vendor, VendorForecastBatch, VendorForecastLine, Contact,
                      Person, Phone, ItemCategory, UnitOfMeasure, JournalBatch, MRPJournalLine)
 
 
@@ -59,10 +59,10 @@ class ContactViewSet(viewsets.ModelViewSet):
                         headers=headers)
 
 
-class VendorForecastEntryViewSet(viewsets.ModelViewSet):
+class VendorForecastLineViewSet(viewsets.ModelViewSet):
 
-    queryset = VendorForecastEntry.objects.all()
-    serializer_class = VendorForecastEntrySerializer
+    queryset = VendorForecastLine.objects.all()
+    serializer_class = VendorForecastLineSerializer
 
     @action(methods=['post'], detail=False)
     def import_data(self, request, *args, **kwargs):

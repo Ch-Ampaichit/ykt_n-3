@@ -6,7 +6,7 @@ from . import api
 router = DefaultRouter()
 router.register(r'items', api.ItemViewSet, basename='items')
 router.register(r'vendors', api.VendorViewSet, basename='vendors')
-router.register(r'forecast-entry', api.VendorForecastEntryViewSet,
+router.register(r'forecast-entry', api.VendorForecastLineViewSet,
                 basename='forecast-entry')
 router.register(r'item-categories', api.ItemCategoryViewSet,
                 basename='item-category')

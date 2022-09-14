@@ -165,8 +165,8 @@ class Phone(models.Model):
 
 
 class JournalBatch(models.Model):
-    key = models.UUIDField(default=uuid.uuid4())
     name = models.CharField(max_length=50, primary_key=True)
+    key = models.UUIDField(default=uuid.uuid4())
 
     def __str__(self):
         return self.name
@@ -253,16 +253,82 @@ class MRPJournalLine(models.Model):
         ordering = ['vendor_no']
 
 
-class VendorForecast(models.Model):
+class VendorForecastHeader(models.Model):
     key = models.UUIDField(default=uuid.uuid4())
     description = models.CharField(max_length=150, blank=True, null=True)
     vendor_no = models.ForeignKey(
-        Vendor, on_delete=models.CASCADE)
+        Vendor, related_name='vendor-forecast+', on_delete=models.CASCADE)
     vendor_name = models.CharField(max_length=100, blank=True, null=True)
     starting_period = models.DateField()
     ending_period = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
-    entries = models.ManyToManyField('VendorForecastEntry', blank=True)
+    entries = models.ManyToManyField('VendorForecastLine', blank=True)
+    created_at = models.DateTimeField(auto_created=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return self.no
+
+    def save(self, *args, **kwargs):
+        self.no = self.no.upper()
+        self.vendor_name = self.vendor_no.name
+        super().save(*args, **kwargs)
+
+    class Meta:
+        db_table = ''
+        managed = True
+        verbose_name = 'Vendor Forecast Header'
+        verbose_name_plural = 'Vendor Forecasts Header'
+        ordering = ['vendor_no']
+
+
+class VendorForecastLine(models.Model):
+    key = models.UUIDField(default=uuid.uuid4())
+    vendor_no = models.ForeignKey(Vendor, on_delete=models.CASCADE)
+    item_no = models.ForeignKey(Item, on_delete=models.CASCADE)
+    description = models.CharField(max_length=150, null=True, blank=True)
+    kb_sd = models.CharField(max_length=20, null=True, blank=True)
+    unit_of_measure = models.CharField(max_length=20, null=True, blank=True)
+    m1_qty = models.DecimalField(max_digits=18, decimal_places=4, default=0)
+    m2_qty = models.DecimalField(max_digits=18, decimal_places=4, default=0)
+    m3_qty = models.DecimalField(max_digits=18, decimal_places=4, default=0)
+    m4_qty = models.DecimalField(max_digits=18, decimal_places=4, default=0)
+
+    def __str__(self):
+        pass
+
+    @property
+    def vendor_name(self):
+        vendor = Vendor.objects.get(pk=self.vendor_no)
+        if vendor is not None:
+            return '{}'.format(vendor.name)
+        return ''
+
+    class Meta:
+        db_table = ''
+        managed = True
+        verbose_name = 'Vendor Forecast Line'
+        verbose_name_plural = 'Vendor Forecast Lines'
+
+
+class PostedVendorForecastHeader(models.Model):
+    key = models.UUIDField(default=uuid.uuid4())
+    description = models.CharField(max_length=150, blank=True, null=True)
+    vendor_no = models.ForeignKey(
+        Vendor, related_name='posted-vendor-forecast+', on_delete=models.CASCADE)
+    vendor_name = models.CharField(max_length=100, blank=True, null=True)
+    starting_period = models.DateField()
+    ending_period = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    entries = models.ManyToManyField('PostedVendorForecastLine', blank=True)
+    approved = models.BooleanField()
+    approved_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, related_name='approved-vendor-forecast+', blank=True, null=True)
+    apporved_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_created=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.no
@@ -280,22 +346,17 @@ class VendorForecast(models.Model):
         ordering = ['vendor_no']
 
 
-class VendorForecastEntry(models.Model):
+class PostedVendorForecastLine(models.Model):
     key = models.UUIDField(default=uuid.uuid4())
     vendor_no = models.ForeignKey(Vendor, on_delete=models.CASCADE)
     item_no = models.ForeignKey(Item, on_delete=models.CASCADE)
     description = models.CharField(max_length=150, null=True, blank=True)
     kb_sd = models.CharField(max_length=20, null=True, blank=True)
     unit_of_measure = models.CharField(max_length=20, null=True, blank=True)
-    m1_qty = models.DecimalField(max_digits=18, decimal_places=8)
-    m2_qty = models.DecimalField(max_digits=18, decimal_places=8)
-    m3_qty = models.DecimalField(max_digits=18, decimal_places=8)
-    m4_qty = models.DecimalField(max_digits=18, decimal_places=8)
-    approved = models.BooleanField()
-    apporved_at = models.DateTimeField()
-    created_at = models.DateTimeField(auto_created=True)
-    created_by = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True)
+    m1_qty = models.DecimalField(max_digits=18, decimal_places=4, default=0)
+    m2_qty = models.DecimalField(max_digits=18, decimal_places=4, default=0)
+    m3_qty = models.DecimalField(max_digits=18, decimal_places=4, default=0)
+    m4_qty = models.DecimalField(max_digits=18, decimal_places=4, default=0)
 
     def __str__(self):
         pass

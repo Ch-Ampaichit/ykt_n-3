@@ -1,6 +1,6 @@
 from dataclasses import fields
 from rest_framework import serializers
-from .models import Item, Vendor, VendorForecastEntry, Contact, Person, Phone, ItemCategory, UnitOfMeasure, JournalBatch, MRPJournalBatch
+from .models import Item, Vendor, VendorForecastLine, Contact, Person, Phone, ItemCategory, UnitOfMeasure, JournalBatch, MRPJournalBatch
 from . import models
 
 
@@ -25,10 +25,10 @@ class ContactSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class VendorForecastEntrySerializer(serializers.ModelSerializer):
+class VendorForecastLineSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = VendorForecastEntry
+        model = VendorForecastLine
         fields = '__all__'
 
 
