@@ -257,23 +257,34 @@ class VendorForecastHeader(models.Model):
     key = models.UUIDField(default=uuid.uuid4())
     description = models.CharField(max_length=150, blank=True, null=True)
     vendor_no = models.ForeignKey(
-        Vendor, related_name='vendor-forecast+', on_delete=models.CASCADE)
+        Vendor, related_name='forecast_header', on_delete=models.CASCADE)
     vendor_name = models.CharField(max_length=100, blank=True, null=True)
     starting_period = models.DateField()
     ending_period = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     entries = models.ManyToManyField('VendorForecastLine', blank=True)
-    created_at = models.DateTimeField(auto_created=True)
     created_by = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True)
+        User, on_delete=models.SET_NULL, related_name='created_forecas', null=True)
+    approved_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, related_name='approved_forecas', null=True)
+    approved_at = models.DateTimeField(null=True)
 
     def __str__(self):
-        return self.no
+        return "{}".format(self.description)
 
     def save(self, *args, **kwargs):
-        self.no = self.no.upper()
         self.vendor_name = self.vendor_no.name
         super().save(*args, **kwargs)
+
+    def get_issued_fullname(self):
+        return "{} {}".format(self.created_by.first_name, self.created_by.last_name)
+
+    def get_approved_fullname(self):
+        # print(
+        #     f'issued_by: {self.created_by} \napproved_by: {self.approved_by}')
+        if self.approved_by is None:
+            return None
+        return "{} {}".format(self.approved_by.first_name, self.approved_by.last_name)
 
     class Meta:
         db_table = ''
@@ -287,6 +298,7 @@ class VendorForecastLine(models.Model):
     key = models.UUIDField(default=uuid.uuid4())
     vendor_no = models.ForeignKey(Vendor, on_delete=models.CASCADE)
     item_no = models.ForeignKey(Item, on_delete=models.CASCADE)
+    item_description = models.CharField(max_length=100, null=True, blank=True)
     description = models.CharField(max_length=150, null=True, blank=True)
     kb_sd = models.CharField(max_length=20, null=True, blank=True)
     unit_of_measure = models.CharField(max_length=20, null=True, blank=True)
@@ -296,7 +308,7 @@ class VendorForecastLine(models.Model):
     m4_qty = models.DecimalField(max_digits=18, decimal_places=4, default=0)
 
     def __str__(self):
-        pass
+        return '{}'.format(self.key)
 
     @property
     def vendor_name(self):
@@ -304,6 +316,10 @@ class VendorForecastLine(models.Model):
         if vendor is not None:
             return '{}'.format(vendor.name)
         return ''
+
+    def save(self, *args, **kwargs):
+        self.item_description = self.item_no.description
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = ''
@@ -331,18 +347,25 @@ class PostedVendorForecastHeader(models.Model):
         User, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
-        return self.no
+        return f'{self.description}'
 
     def save(self, *args, **kwargs):
-        self.no = self.no.upper()
         self.vendor_name = self.vendor_no.name
         super().save(*args, **kwargs)
+
+    def get_issued_fullname(self):
+        return "{} {}".format(self.created_by.first_name, self.created_by.last_name)
+
+    def get_approved_fullname(self):
+        if self.approved_by is None:
+            return None
+        return "{} {}".format(self.approved_by.first_name, self.approved_by.last_name)
 
     class Meta:
         db_table = ''
         managed = True
-        verbose_name = 'Vendor Forecast'
-        verbose_name_plural = 'Vendor Forecasts'
+        verbose_name = 'Posted Vendor Forecast'
+        verbose_name_plural = 'Posted Vendor Forecasts'
         ordering = ['vendor_no']
 
 
@@ -359,7 +382,7 @@ class PostedVendorForecastLine(models.Model):
     m4_qty = models.DecimalField(max_digits=18, decimal_places=4, default=0)
 
     def __str__(self):
-        pass
+        return f'{self.description}-{self.item_no}'
 
     @property
     def vendor_name(self):
@@ -368,8 +391,14 @@ class PostedVendorForecastLine(models.Model):
             return '{}'.format(vendor.name)
         return ''
 
+    @property
+    def item_description(self):
+        if self.item_no is None:
+            return None
+        return self.item_no.description
+
     class Meta:
         db_table = ''
         managed = True
-        verbose_name = 'Vendor Forecast Entry'
-        verbose_name_plural = 'Vendor Forecast Entries'
+        verbose_name = 'Posted Vendor Forecast Line'
+        verbose_name_plural = 'Posted Vendor Forecast Lines'

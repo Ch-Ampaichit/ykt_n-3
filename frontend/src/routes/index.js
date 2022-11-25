@@ -18,6 +18,7 @@ import MigrationPage from "pages/Migration";
 import MRPWorksheetPage from "pages/MRPWorksheet";
 import VendorForecastPage from "pages/VendorForecast";
 import VendorForecastEntryPage from "pages/VendorForecastEntry";
+import PostedVendorForecast from "pages/PostedVendForecast";
 
 const MainRoute = () => {
   // const location = localStorage.getItem("currLocation");
@@ -28,10 +29,13 @@ const MainRoute = () => {
       {/* Wrap all Route under Protected element */}
       <Route path="/" element={<ProtectedRoutes />}>
         <Route path="/" element={<MainLayout />}>
-          <Route path="/" element={<Navigate replace to={"mrp_worksheet"} />} />
+          <Route
+            path="/"
+            element={<Navigate replace to={"vendor_forecast"} />}
+          />
           <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="mrp_worksheet" element={<MRPWorksheetPage />} />
           <Route path="vendor_forecast" element={<VendorForecastPage />} />
+          <Route path="mrp_worksheet" element={<MRPWorksheetPage />} />
           <Route
             path="vendor_forecast_entry"
             element={<VendorForecastEntryPage />}
@@ -39,6 +43,7 @@ const MainRoute = () => {
           <Route path="items" element={<ItemsPage />} />
           <Route path="vendors" element={<VendorsPage />} />
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="approved_entries" element={<PostedVendorForecast />} />
           <Route path="users_management" element={<UsersManagement />} />
           <Route path="data_migrations" element={<MigrationPage />} />
         </Route>

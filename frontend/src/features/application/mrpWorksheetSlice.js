@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
-import { url } from "config/api";
+import { api_url } from "config/api";
 
 const initialState = {
   status: "Idle",
@@ -9,8 +9,6 @@ const initialState = {
   datasource: [],
   columns: [],
 };
-
-const token = localStorage.getItem("token");
 
 export const mrpWorksheetSlice = createSlice({
   name: "mrpWorksheet",
@@ -69,6 +67,7 @@ export const mrpWorksheetSlice = createSlice({
         // console.log("asyncClearAll.fulfilled: ", action);
         state.status = "idle";
         state.datasource = [];
+        state.vendor_batch = [];
       })
       .addCase(asyncClearAll.rejected, (state, action) => {
         // console.log("asyncClearAll.rejected: ", action);
@@ -86,96 +85,172 @@ export const mrpWorksheetSlice = createSlice({
       })
       .addCase(asyncDelete.rejected, (state, action) => {
         // console.log("asyncClearAll.rejected: ", action);
+      })
+      .addCase(asyncGenVendForecast.pending, (state, action) => {
+        // console.log("asyncGenVendForecast.pending: ", action);
+        state.status = "Loading";
+      })
+      .addCase(asyncGenVendForecast.fulfilled, (state, action) => {
+        // console.log("asyncGenVendForecast.fulfilled: ", action);
+        state.status = "idle";
+        state.datasource = [];
       });
   },
 });
 
 export const asyncInitPage = createAsyncThunk(
   "MRPWorksheet/initial",
-  async () => {
+  async (_, thunkAPI) => {
     const token = localStorage.getItem("token");
-    const response = await axios
-      .get(url.mrp_page, {
+    try {
+      const resp = await axios({
+        method: "GET",
+        url: api_url.mrp_page,
         headers: {
+          "Content-Type": "application/json",
           Authorization: `token ${token}`,
         },
-      })
-      .then((resp) => {
-        return resp;
-      })
-      .catch((err) => {
-        // console.log("asyncInitPage Error: ", err);
+        // data,
       });
-
-    return response.data;
+      //   console.log("resp: ", resp);
+      return resp.data;
+    } catch (err) {
+      //   if (!err.response) {
+      //     throw err;
+      //   }
+      //   console.log("Errors: ", err);
+      return thunkAPI.rejectWithValue(err.response.data);
+    }
   }
 );
 
 export const asyncGetMRPJournalBatch = createAsyncThunk(
   "MRPWorksheet/GetJournalBatch",
-  async (batch_name) => {
-    const response = await axios
-      .get(`${url.mrp_journal_batch}${batch_name}/`, {
-        headers: { Authorization: `token ${token}` },
-      })
-      .then((resp) => {
-        return resp;
+  async (batch_name, thunkAPI) => {
+    const token = localStorage.getItem("token");
+    try {
+      const resp = await axios({
+        method: "GET",
+        url: `${api_url.mrp_journal_batch}${batch_name}/`,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `token ${token}`,
+        },
+        // data,
       });
-    return response.data;
+      //   console.log("resp: ", resp);
+      return resp.data;
+    } catch (err) {
+      //   if (!err.response) {
+      //     throw err;
+      //   }
+      //   console.log("Errors: ", err);
+      return thunkAPI.rejectWithValue(err.response.data);
+    }
   }
 );
 
 export const asyncImportMRPJournalLine = createAsyncThunk(
   "MRPWorksheet/import",
-  async (data) => {
-    // console.log("import_data: ", data);
-    const response = await axios
-      .post(url.import_mrp, data, {
-        headers: { Authorization: `token ${token}` },
-      })
-      .then((resp) => {
-        // console.log("return: ", resp);
-        return resp;
-      })
-      .catch((err) => {
-        console.log("Error: ", err.response);
+  async (data, thunkAPI) => {
+    const token = localStorage.getItem("token");
+    try {
+      const resp = await axios({
+        method: "POST",
+        url: api_url.import_mrp,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `token ${token}`,
+        },
+        data,
       });
-    return response.data;
+      //   console.log("resp: ", resp);
+      return resp.data;
+    } catch (err) {
+      //   if (!err.response) {
+      //     throw err;
+      //   }
+      //   console.log("Errors: ", err);
+      return thunkAPI.rejectWithValue(err.response.data);
+    }
   }
 );
 
 export const asyncClearAll = createAsyncThunk(
   "MRPWorksheet/clear_all",
-  async (batch_name) => {
-    // console.log("batch_name: ", batch_name);
-    const response = await axios
-      .post(
-        url.clear_all_jnl_line,
-        { batch_name },
-        {
-          headers: { Authorization: `token ${token}` },
-        }
-      )
-      .then((resp) => {
-        return resp;
+  async (req, thunkAPI) => {
+    const token = localStorage.getItem("token");
+    try {
+      const resp = await axios({
+        method: "DELETE",
+        url: api_url.clear_all_jnl_line,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `token ${token}`,
+        },
+        data: req,
       });
-    return response.data;
+      //   console.log("resp: ", resp);
+      return resp.data;
+    } catch (err) {
+      //   if (!err.response) {
+      //     throw err;
+      //   }
+      //   console.log("Errors: ", err);
+      return thunkAPI.rejectWithValue(err.response.data);
+    }
+  }
+);
+
+export const asyncGenVendForecast = createAsyncThunk(
+  "MRPWorksheet/GenVendForecast",
+  async (period_data, thunkAPI) => {
+    const token = localStorage.getItem("token");
+    try {
+      const resp = await axios({
+        method: "POST",
+        url: api_url.gen_vend_forecast,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `token ${token}`,
+        },
+        data: period_data,
+      });
+      //   console.log("resp: ", resp);
+      return resp.data;
+    } catch (err) {
+      //   if (!err.response) {
+      //     throw err;
+      //   }
+      //   console.log("Errors: ", err);
+      return thunkAPI.rejectWithValue(err.response.data);
+    }
   }
 );
 
 export const asyncDelete = createAsyncThunk(
   "MRPWorksheet/delete",
-  async (pk) => {
-    // console.log("batch_name: ", batch_name);
-    const response = await axios
-      .delete(`${url.mrp_journal_line}/${pk}`, {
-        headers: { Authorization: `token ${token}` },
-      })
-      .then((resp) => {
-        console.log("resp: ", resp);
-        return resp.data;
+  async (pk, thunkAPI) => {
+    const token = localStorage.getItem("token");
+    try {
+      const resp = await axios({
+        method: "DELETE",
+        url: `${api_url.mrp_journal_line}${pk}/`,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `token ${token}`,
+        },
+        // data,
       });
-    return response.data;
+      //   console.log("resp: ", resp);
+      return resp.data;
+    } catch (err) {
+      //   if (!err.response) {
+      //     throw err;
+      //   }
+      //   console.log("Errors: ", err);
+      return thunkAPI.rejectWithValue(err.response.data);
+    }
   }
 );
 

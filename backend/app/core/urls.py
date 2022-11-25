@@ -7,4 +7,5 @@ from rest_framework.routers import DefaultRouter
 
 urlpatterns = [
     path('api/send_email/', views.send_email),
+    path('api/send_forecast/', views.send_forecast)
 ]

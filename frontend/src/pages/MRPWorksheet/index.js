@@ -34,14 +34,15 @@ import {
   asyncGetMRPJournalBatch,
   asyncImportMRPJournalLine,
   asyncClearAll,
+  asyncGenVendForecast,
 } from "features/application/mrpWorksheetSlice";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 
 const { Option } = Select;
 
 const MRPWorksheetPage = (props) => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const defaultJnlBatch = useSelector(
     (state) => state.authentication.user.user_setup.mrp_jnl_batch.batch_name
   );
@@ -57,6 +58,8 @@ const MRPWorksheetPage = (props) => {
 
   const vendor_batch = useSelector((state) => state.mrp_worksheet.vendor_batch);
   // console.log("vendor_batch: ", vendor_batch);
+
+  const [isError, setIsError] = useState(false);
 
   const generateBtnRef = useRef(null);
 
@@ -170,6 +173,14 @@ const MRPWorksheetPage = (props) => {
         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false });
         const JnlLineData = jsonData.map((rec, idx) => {
+          const imp_qty = parseFloat(rec["Quantity"].replace(/,/g, ""));
+          const mod_num = imp_qty % 1;
+          const qty = mod_num > 0 ? Math.floor(imp_qty) + 1 : imp_qty;
+
+          if (mod_num > 0) {
+            // console.log("Round Qty: ", qty, " From: ", imp_qty);
+          }
+
           return {
             key: uuidV4(),
             vendor_no: rec["Vendor No."],
@@ -177,7 +188,8 @@ const MRPWorksheetPage = (props) => {
             description: rec["Description"],
             kb_sd: rec["KB SD"],
             due_date: dateformat(new Date(rec["Due Date"]), "yyyy-mm-dd"),
-            quantity: parseFloat(rec["Quantity"]),
+            // quantity: parseFloat(rec["Quantity"].replace(/,/g, "")),
+            quantity: qty,
             unit_of_measure_code: rec["Unit of Measure Code"],
             vendor_name: rec["Vendor Name"],
             journal_batch: batchName,
@@ -374,8 +386,9 @@ const MRPWorksheetPage = (props) => {
               value={startingPeriod}
               onChange={(date) => {
                 if (date) {
-                  setStartingPeriod(moment(date));
-                  setEndingPeriod(moment(date.add(3, "M")));
+                  setStartingPeriod(moment(date).startOf("month"));
+                  setEndingPeriod(moment(date.add(3, "M")).endOf("month"));
+                  setIsError(false);
                   generateBtnRef.current.focus();
                 } else {
                   setStartingPeriod(null);
@@ -389,8 +402,11 @@ const MRPWorksheetPage = (props) => {
               value={endingPeriod}
               onChange={(date) => {
                 if (date) {
-                  setEndingPeriod(moment(date));
-                  setStartingPeriod(moment(date).subtract(3, "M"));
+                  setEndingPeriod(moment(date).startOf("month"));
+                  setStartingPeriod(
+                    moment(date).subtract(3, "M").endOf("month")
+                  );
+                  setIsError(false);
                   generateBtnRef.current.focus();
                 } else {
                   setStartingPeriod(null);
@@ -403,14 +419,46 @@ const MRPWorksheetPage = (props) => {
               type="primary"
               icon={<ThunderboltOutlined />}
               onClick={() => {
-                // console.log("Generate");
-                // <Navigate to={"/vendor_forecast"} replace />;
-                navigate(`/vendor_forecast`);
+                if (startingPeriod === null || endingPeriod === null) {
+                  setIsError(true);
+                } else {
+                  const monList = [
+                    moment(startingPeriod).format("MMM-YYYY"),
+                    moment(startingPeriod).add(1, "M").format("MMM-YYYY"),
+                    moment(startingPeriod).add(2, "M").format("MMM-YYYY"),
+                    moment(startingPeriod).add(3, "M").format("MMM-YYYY"),
+                  ];
+
+                  // console.log("Month List: ", monList);
+
+                  const period_data = {
+                    period: `${moment(startingPeriod).format(
+                      "MMYYYY"
+                    )}-${moment(endingPeriod).format("MMYYYY")}`,
+                    months_period: monList,
+                    starting_period:
+                      moment(startingPeriod).format("YYYY-MM-DD"),
+                    ending_period: moment(endingPeriod).format("YYYY-MM-DD"),
+                  };
+
+                  dispatch(asyncGenVendForecast(period_data));
+
+                  setExecuteVisible(false);
+
+                  // navigate(`/vendor_forecast`);
+                }
               }}
             >
               Generate
             </Button>
           </Space>
+
+          {isError && (
+            <Typography.Text type="danger">
+              You must specify Starting and Ending period!
+            </Typography.Text>
+          )}
+
           <Table
             size="small"
             columns={[

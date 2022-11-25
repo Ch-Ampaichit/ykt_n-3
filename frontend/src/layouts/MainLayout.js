@@ -23,7 +23,7 @@ import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
 // project import
-import { itemMenu } from "config";
+// import { itemMenu } from "config";
 import { logout } from "features/authentication/authenSlice";
 import MenuIcon from "./Menu";
 
@@ -175,10 +175,9 @@ const MainLayout = () => {
                               : `${authUser.username.toUpperCase()}`
                             : "Usere profile",
                           key: "userProfile",
-                          // type: "group",
                         },
                         { type: "divider" },
-                        ...itemMenu.profile,
+                        // ...itemMenu.profile,
                         ...profileMenu,
                       ]}
                     />

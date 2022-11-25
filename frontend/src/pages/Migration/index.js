@@ -1,5 +1,4 @@
-import { Space, Card, Collapse, Tooltip } from "antd";
-import { UploadOutlined, DeliveredProcedureOutlined } from "@ant-design/icons";
+import { Space, Card, Collapse, Tooltip, Modal } from "antd";
 import React from "react";
 import ItemCategoryMigration from "./ItemCategoryMigration";
 import ItemMigration from "./ItemMigration";
@@ -23,130 +22,25 @@ const MigrationPage = () => {
       >
         <Card title="Data Migrations">
           <Collapse>
-            <Panel
-              header="Items"
-              key={"items"}
-              extra={
-                <Space>
-                  <Tooltip title="Import Data">
-                    <UploadOutlined onClick={(e) => e.stopPropagation()} />
-                  </Tooltip>
-                  <Tooltip title="Save to Database">
-                    <DeliveredProcedureOutlined
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </Tooltip>
-                </Space>
-              }
-            >
+            <Panel header="Items" key={"items"}>
               <ItemMigration />
             </Panel>
-            <Panel
-              header="Item Category"
-              key={"item_category"}
-              extra={
-                <Space>
-                  <Tooltip title="Import Data">
-                    <UploadOutlined onClick={(e) => e.stopPropagation()} />
-                  </Tooltip>
-                  <Tooltip title="Save to Database">
-                    <DeliveredProcedureOutlined
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </Tooltip>
-                </Space>
-              }
-            >
+            <Panel header="Item Category" key={"item_category"}>
               <ItemCategoryMigration />
             </Panel>
-            <Panel
-              header="Unit of Measure"
-              key={"unit_of_measure"}
-              extra={
-                <Space>
-                  <Tooltip title="Import Data">
-                    <UploadOutlined onClick={(e) => e.stopPropagation()} />
-                  </Tooltip>
-                  <Tooltip title="Save to Database">
-                    <DeliveredProcedureOutlined
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </Tooltip>
-                </Space>
-              }
-            >
+            <Panel header="Unit of Measure" key={"unit_of_measure"}>
               <ItemUOMMigration />
             </Panel>
-            <Panel
-              header="Vendors"
-              key={"venoors"}
-              extra={
-                <Space>
-                  <Tooltip title="Import Data">
-                    <UploadOutlined onClick={(e) => e.stopPropagation()} />
-                  </Tooltip>
-                  <Tooltip title="Save to Database">
-                    <DeliveredProcedureOutlined
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </Tooltip>
-                </Space>
-              }
-            >
+            <Panel header="Vendors" key={"venoors"}>
               <VendorMigration />
             </Panel>
-            <Panel
-              header="Contact"
-              key={"contact"}
-              extra={
-                <Space>
-                  <Tooltip title="Import Data">
-                    <UploadOutlined onClick={(e) => e.stopPropagation()} />
-                  </Tooltip>
-                  <Tooltip title="Save to Database">
-                    <DeliveredProcedureOutlined
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </Tooltip>
-                </Space>
-              }
-            >
+            <Panel header="Contact" key={"contact"}>
               <ContactMigration />
             </Panel>
-            <Panel
-              header="Person"
-              key={"person"}
-              extra={
-                <Space>
-                  <Tooltip title="Import Data">
-                    <UploadOutlined onClick={(e) => e.stopPropagation()} />
-                  </Tooltip>
-                  <Tooltip title="Save to Database">
-                    <DeliveredProcedureOutlined
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </Tooltip>
-                </Space>
-              }
-            >
+            <Panel header="Person" key={"person"}>
               <PersonMigration />
             </Panel>
-            <Panel
-              header="Phones"
-              key={"phones"}
-              extra={
-                <Space>
-                  <Tooltip title="Import Data">
-                    <UploadOutlined onClick={(e) => e.stopPropagation()} />
-                  </Tooltip>
-                  <Tooltip title="Save to Database">
-                    <DeliveredProcedureOutlined
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </Tooltip>
-                </Space>
-              }
-            >
+            <Panel header="Phones" key={"phones"}>
               <PhoneMigration />
             </Panel>
           </Collapse>

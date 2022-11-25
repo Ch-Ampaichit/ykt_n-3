@@ -18,7 +18,7 @@ import { useEffect } from "react";
 import axios from "axios";
 // import { InfinityTable as Table } from "antd-table-infinity";
 
-import { url } from "config/api";
+import { api_url } from "config/api";
 
 const item_model = {
   no: "",
@@ -93,7 +93,7 @@ const ItemsPage = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     axios
-      .get(url.items, {
+      .get(api_url.items, {
         headers: {
           Authorization: `token ${token}`,
         },

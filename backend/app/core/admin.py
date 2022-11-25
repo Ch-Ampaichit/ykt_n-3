@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SubMenu, UserSetup, MenuSuite, Menu
+from .models import *
 
 
 @admin.register(UserSetup)
@@ -22,3 +22,9 @@ class MenuAdmin(admin.ModelAdmin):
 class SubMenuAdmin(admin.ModelAdmin):
     list_display = ['no', 'key', 'title', 'label',
                     'danger', 'disabled', 'type', 'icon']
+
+
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ['nick_name', 'initial', 'section',
+                    'position', 'phone_no', 'ext_no']

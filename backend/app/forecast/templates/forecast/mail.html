@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {% load static %}
+    <link href="{% static 'forecast/css/bootstrap.min.css' %}" />
+    <script src="{% static 'forecast/js/bootstrap.min.js' %}"></script>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 14px;
+      }
+
+      .blue-text {
+        color: blue;
+      }
+
+      .company-info {
+        padding-top: 50px;
+        color: #0517a1;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="lead">Please sign and send back for confirm to me.</p>
+    <br />
+    <p>** Significant **</p>
+    <ol class="list-group list-group-numbered">
+      <li class="list-group-item">
+        Monthly MRP ÷ working day = Forecast / day
+      </li>
+      <li class="list-group-item">
+        Sometimes the materials purchase may be more than the MRP. Depending on
+        the needs of our customers. (Not over + - 25 %).
+      </li>
+      <li class="list-group-item">
+        YKT we need to keep an inventory equal to 3 days. (Some part Can’t
+        achieve target ).
+      </li>
+      <li class="list-group-item">
+        Suppliers must to keep an inventory equal to 3 days too. (Some Suppliers
+        Can’t achieve target ).
+      </li>
+    </ol>
+    <p>
+      After review. Please sign the documents and return it to me.
+      <br />
+      Thanks as always for your best cooperation. and Willing to listen to
+      feedback from all of you. To the satisfaction of the customer.
+    </p>
+
+    <br />
+
+    <p>We are sorry for your inconvenience.</p>
+    <br />
+
+    <p class="blue-text">Thank you & Best Regards,</p>
+    <p>{{user.profile.initial}}{{user.first_name}} &nbsp {{user.last_name}}</p>
+    <p>{{user.profile.position}} / {{user.profile.section}}</p>
+    <p>======================================================</p>
+    <div class="company-info">
+      <strong>YOKOYAMA KOGYO (THAILAND) CO.,LTD.</strong>
+      <p>Eastern Seaboard Industrial Estate Rayong</p>
+      <p>300/58 Moo 1, T.Tasit, A.Pluakdaeng, Rayong 21140</p>
+      <p>Tel: 038-015240-2 Ext.{{user.profile.ext_no}}</p>
+      <p>FAX: 038-015243-4</p>
+      <p>Mobile: {{user.profile.phone_no}}</p>
+      <p>E-Mail: {{user.email}}</p>
+      <p>
+        URL: <a href="http://www.yokoyama.co.th">http://www.yokoyama.co.</a>
+      </p>
+    </div>
+  </body>
+</html>

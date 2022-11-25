@@ -1,6 +1,5 @@
 from django.contrib import admin
-from .models import (Item, UnitOfMeasure, ItemCategory, Vendor, Contact, Person, Phone,
-                     VendorForecastLine, MRPJournalLine, MRPJournalBatch, JournalBatch, VendorForecastBatch)
+from .models import *
 
 
 @admin.register(JournalBatch)
@@ -21,7 +20,7 @@ class VendorForecastBatchAdmin(admin.ModelAdmin):
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
     list_display = ['no', 'description',
-                    'base_unit_of_measure_code', 'kb_sd', 'model', 'search_name', 'item_category_code', 'key']
+                    'base_unit_of_measure_code', 'kb_sd', 'model', 'item_category_code']
 
 
 @admin.register(UnitOfMeasure)
@@ -40,15 +39,11 @@ class MRPJournalLineAdmin(admin.ModelAdmin):
                     'description', 'kb_sd', 'due_date', 'quantity', 'created_by']
 
 
-# @admin.register(VendorForecastLine)
-# class VendorForecastLineAdmin(admin.ModelAdmin):
-#     list_display = [f.name for f in VendorForecastLine._meta.get_fields()]
-
-
 @admin.register(Vendor)
 class VendorAdmin(admin.ModelAdmin):
     list_display = ['no', 'name', 'contact_no', 'email',
                     'phone_no', 'address', 'city', 'post_code']
+    search_fields = ['no', 'name']
 
 
 @admin.register(Contact)
@@ -65,3 +60,30 @@ class PersonAdmin(admin.ModelAdmin):
 @admin.register(Phone)
 class PhoneAdmin(admin.ModelAdmin):
     list_display = ['type', 'no', 'owner']
+
+
+@admin.register(VendorForecastHeader)
+class VendorForecastHeaderAdmin(admin.ModelAdmin):
+    list_display = ['description', 'vendor_no', 'vendor_name',
+                    'starting_period', 'ending_period', 'created_by', 'created_at', 'approved_by', 'approved_at']
+    search_fields = ['description', 'vendor_no']
+
+
+@admin.register(VendorForecastLine)
+class VendorForecastLineAdmin(admin.ModelAdmin):
+    list_display = ['description',  'vendor_no', 'item_no', 'kb_sd',
+                    'unit_of_measure', 'm1_qty', 'm2_qty', 'm3_qty', 'm4_qty']
+    search_fields = ['description', 'vendor_no', 'item_no']
+
+
+@admin.register(PostedVendorForecastHeader)
+class PostedVendorForecastHeader(admin.ModelAdmin):
+    list_display = ['description', 'vendor_no', 'vendor_name',
+                    'starting_period', 'ending_period', 'created_by', 'created_at', 'approved_by', 'apporved_at']
+    search_fields = ['description', 'vendor_no']
+
+
+@admin.register(PostedVendorForecastLine)
+class PostedVendorForecastLineAdmin(admin.ModelAdmin):
+    list_display = ['key', 'description',  'vendor_no', 'item_no', 'kb_sd']
+    search_fields = ['description',  'vendor_no', 'item_no', 'kb_sd']

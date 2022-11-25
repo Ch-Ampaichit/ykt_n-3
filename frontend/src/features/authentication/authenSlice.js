@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
-import { url } from "config/api";
+import { auth_url } from "config/api";
 
 const initialState = {
   isAuthenticated: false,
@@ -24,7 +24,7 @@ export const authenSlice = createSlice({
       const token = localStorage.getItem("token");
       axios
         .post(
-          url.logout,
+          auth_url.logout,
           {},
           {
             headers: {
@@ -91,7 +91,7 @@ export const asyncLoadUser = createAsyncThunk(
   async () => {
     const token = localStorage.getItem("token");
     const response = await axios
-      .get(url.user, {
+      .get(auth_url.user, {
         headers: {
           Authorization: `token ${token}`,
         },
@@ -117,7 +117,7 @@ export const authLogin = createAsyncThunk(
     const password = user.password;
 
     const response = await axios
-      .post(url.login, {
+      .post(auth_url.login, {
         username,
         password,
       })

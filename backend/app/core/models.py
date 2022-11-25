@@ -98,3 +98,23 @@ class UserSetup(models.Model):
         verbose_name = 'User Setup'
         verbose_name_plural = 'User Setups'
         unique_together = ['user']
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(
+        User, related_name="profile", on_delete=models.CASCADE)
+    nick_name = models.CharField(max_length=50, null=True, blank=True)
+    section = models.CharField(max_length=50, null=True, blank=True)
+    position = models.CharField(max_length=50, null=True, blank=True)
+    phone_no = models.CharField(max_length=50, null=True, blank=True)
+    ext_no = models.CharField(max_length=5, null=True, blank=True)
+    initial = models.CharField(max_length=10, null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.nick_name}'
+
+    class Meta:
+        db_table = ''
+        managed = True
+        verbose_name = 'Profile'
+        verbose_name_plural = 'Profiles'

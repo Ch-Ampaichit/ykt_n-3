@@ -13,21 +13,41 @@ import {
   Tooltip,
   Drawer,
   Typography,
+  Form,
 } from "antd";
-import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
-import axios from "axios";
+import {
+  PlusOutlined,
+  DeleteOutlined,
+  // SearchOutlined,
+} from "@ant-design/icons";
 
-import { url } from "config/api";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  asyncLoadVendor,
+  asyncUpdateVendor,
+} from "features/application/vendorSlice";
 
-const vendor = {
+let vendor = {
+  address: null,
+  address_2: null,
+  city: "",
+  contact_no: null,
+  email: null,
+  key: "",
   no: "",
-  name: "",
+  phone_no: "",
+  post_code: "",
+  search_name: "",
 };
 
 const VendorPage = (props) => {
+  const dispatch = useDispatch();
+
+  const [form] = Form.useForm();
+
   const [vendorDetailVisible, setVendorDetailVisible] = useState(false);
   const [vendorRecord, setVendorRecord] = useState(vendor);
-  const [dataLoading, setDataLoading] = useState(true);
+
   const [columns] = useState([
     {
       title: "No.",
@@ -36,25 +56,15 @@ const VendorPage = (props) => {
       fixed: true,
       width: 100,
       render: (text, record, index) => {
-        return (
-          <Button
-            type="link"
-            onClick={() => {
-              // console.log("record: ", record);
-              setVendorRecord(record);
-              setVendorDetailVisible(true);
-            }}
-          >
-            {text}
-          </Button>
-        );
+        return <Button type="link">{text}</Button>;
       },
     },
     {
       title: "Name.",
       dataIndex: "name",
       key: "name",
-      width: 400,
+      // width: 400,
+      ellipsis: true,
     },
     {
       title: "Phone No.",
@@ -71,36 +81,33 @@ const VendorPage = (props) => {
       title: "Address",
       dataIndex: "address",
       key: "address",
+      width: 400,
     },
     {
       title: "City",
       dataIndex: "city",
+      width: 160,
       key: "city",
     },
     {
       title: "Post Code",
       dataIndex: "post_code",
       key: "post_code",
+      width: 100,
+      align: "center",
     },
   ]);
-  const [vendorsData, setVendorsData] = useState([]);
+
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [pageSize, setPageSize] = useState(500);
 
+  const dataSource = useSelector((state) => state.vendors.datasource);
+
+  const status = useSelector((state) => state.vendors.status);
+
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    axios
-      .get(url.vendors, {
-        headers: {
-          Authorization: `token ${token}`,
-        },
-      })
-      .then((resp) => {
-        // console.log("resp: ", resp.data);
-        setVendorsData(resp.data);
-        setDataLoading(false);
-      });
-    // console.log("token : ", token);
+    dispatch(asyncLoadVendor());
+    // eslint-disable-next-line
   }, []);
 
   const onSelectChange = (newSelectedRowKeys, selectedRows) => {
@@ -112,6 +119,40 @@ const VendorPage = (props) => {
   const rowSelection = {
     selectedRowKeys,
     onChange: onSelectChange,
+  };
+
+  const handleOnRowClick = (record) => {
+    // console.log("handleOnRowClick: ", record);
+    form.setFieldsValue({
+      no: record.no,
+      name: record.name,
+      address: record.address,
+      address_2: record.address_2,
+      city: record.city,
+      contact_no: null,
+      email: record.email,
+      phone_no: record.phone_no,
+      post_code: record.post_code,
+      search_name: "",
+    });
+    setVendorRecord(record);
+    setVendorDetailVisible(true);
+  };
+
+  const handleChageVendor = (val) => {
+    // console.log("vendor data: ", val, "\ncurrRec: ", vendorRecord);
+    vendor = {
+      no: vendorRecord.no,
+      name: val.name,
+      address: val.address,
+      address_2: val.address_2,
+      city: val.city,
+      email: val.email,
+      phone_no: val.phone_no,
+      post_code: val.post_code,
+    };
+    dispatch(asyncUpdateVendor(vendor));
+    setVendorRecord(vendor);
   };
 
   return (
@@ -130,7 +171,11 @@ const VendorPage = (props) => {
           size="small"
           extra={
             <Space>
-              <AutoComplete>
+              <AutoComplete
+                onSearch={(e) => {
+                  console.log("e = ", e);
+                }}
+              >
                 <Input.Search placeholder="Search" />
               </AutoComplete>
               <Button icon={<DeleteOutlined />} />
@@ -139,14 +184,22 @@ const VendorPage = (props) => {
           }
         >
           <Table
-            loading={dataLoading}
+            loading={status === "Loading"}
             rowSelection={rowSelection}
             // rowClassName={(rec, index) => {
             //   console.log("rec: ", rec, ", index: ", index);
             // }}
+            onRow={(record, rowIndex) => {
+              return {
+                onClick: () => {
+                  // console.log("record: ", record, "\nrowIndex: ", rowIndex);
+                  handleOnRowClick(record);
+                },
+              };
+            }}
             size="small"
             columns={columns}
-            dataSource={vendorsData}
+            dataSource={dataSource}
             bordered
             scroll={{
               x: 1300,
@@ -173,7 +226,69 @@ const VendorPage = (props) => {
         onClose={() => {
           setVendorDetailVisible(false);
         }}
-      ></Drawer>
+      >
+        <Space
+          direction="vertical"
+          size={"small"}
+          style={{
+            padding: 16,
+            display: "flex",
+          }}
+        >
+          <Form
+            form={form}
+            labelAlign="left"
+            labelCol={{
+              span: 3,
+            }}
+            // onFieldsChange={(_, allFileds) => {
+            //   console.log("allField: ", allFileds);
+            // }}
+            onFinish={(value) => {
+              handleChageVendor(value);
+            }}
+          >
+            <Form.Item label={"Name"} name={"name"}>
+              <Input />
+            </Form.Item>
+            <Form.Item label={"Address"} name={"address"}>
+              <Input />
+            </Form.Item>
+            <Form.Item label={"Address 2"} name={"address_2"}>
+              <Input />
+            </Form.Item>
+            <Form.Item label={"City"} name={"city"}>
+              <Input />
+            </Form.Item>
+            <Form.Item label={"Post Code"} name={"post_code"}>
+              <Input />
+            </Form.Item>
+            <Form.Item label={"Phone No."} name={"phone_no"}>
+              <Input />
+            </Form.Item>
+            <Form.Item
+              label={"Email"}
+              name={"email"}
+              rules={[
+                {
+                  type: "email",
+                },
+              ]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              wrapperCol={{
+                offset: 12,
+              }}
+            >
+              <Button type="primary" htmlType="submit">
+                Save
+              </Button>
+            </Form.Item>
+          </Form>
+        </Space>
+      </Drawer>
     </div>
   );
 };

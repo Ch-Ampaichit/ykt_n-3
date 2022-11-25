@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>MRP SUMMARY REPORT</title>
+    <style>
+      @page {
+        size: a4 portrait;
+        @frame header_title_frame {
+          /* Static Frame */
+          -pdf-frame-content: header_title_content;
+          left: 25pt;
+          width: 545pt;
+          top: 42pt;
+          height: 28pt;
+        }
+        
+        @frame company_title_frame {
+          /* Static Frame */
+          -pdf-frame-content: company_title_content;
+          left: 25pt;
+          top: 62pt;
+          width: 545pt;
+          height: 42pt;
+        }
+
+        @frame page_no_frame {
+          -pdf-frame-content: page_no_frame;
+          right: 25pt;
+          top: 42pt;
+          width: 40pt;
+          height: 25pt;
+          text-align: right;
+        }
+        
+        @frame vendor_info {
+          -pdf-frame-content: vendor_info;
+          left: 25pt;
+          top: 90;
+          width: 370pt;
+          height: 200pt;
+        }
+
+        @frame company_info {
+          -pdf-frame-content: company_info;
+          right: 25pt;
+          top: 90pt;
+          width: 160pt;
+          height: 200pt;
+        }
+        
+        @frame table_header_frame {
+          -pdf-frame-content: table_header_content;
+          left: 25pt;
+          width: 545pt;
+          top: 164pt;
+          height: 35pt;
+        }
+
+        @frame content_frame {
+          /* Content Frame */
+          left: 25pt;
+          width: 545pt;
+          top: 190pt;
+          height: 522pt;
+        }
+
+        @frame footer_issue_frame {
+          /* Another static Frame */
+          -pdf-frame-content: footer_issue_frame;
+          left: 25pt;
+          bottom: 80pt;
+          width: 270pt;
+          height: 80pt;
+        }
+        
+        @frame footer_approve_frame {
+          /* Another static Frame */
+          -pdf-frame-content: footer_approve_frame;
+          right: 25pt;
+          bottom: 35pt;
+          width: 250pt;
+          height: 95pt;
+        }
+
+        @frame footer_doc_control {
+          /* Another static Frame */
+          -pdf-frame-content: footer_doc_control;
+          right: 25pt;
+          bottom: 25pt;
+          width: 250pt;
+          height: 22pt;
+        }
+        
+      }
+
+      th {
+        font-weight: bold;
+        border-top: 1px solid #333;
+        border-left: 1px solid #333;  
+        border-right: 1px solid #333;
+      } 
+      
+      td {
+        height: 19pt;
+        padding: 1pt 3pt;
+        border: 1px solid #333;
+      }
+
+      tr{
+        line-height: 1px;
+      }
+
+
+      .title-box{
+        text-align: center;
+      }
+
+      .title-box > h1 {
+        padding: 4pt 0;
+        font-size: 16px;
+      }
+      
+      .title-box > p {
+        font-size: 13px;
+      }
+      
+      .label{
+        font-size: 11px;
+        line-height: 15pt;
+      }
+
+      .company-info {
+        line-height: 11pt;
+      }
+
+      #footer_doc_control{
+        text-align: right;
+      }
+
+      #footer_approve_frame> table > thead > tr > th{
+        border-bottom: 1px solid #333;
+        padding: 2pt;
+      }
+
+      #footer_approve_frame {
+        {% comment %} font-size: 12px; {% endcomment %}
+      }
+
+      
+      #footer_approve_frame> table > tbody > tr > td{
+        text-align: center;
+      }
+
+    </style>
+
+  </head>
+  <body>
+    
+    <!-- Content for Static Frame 'header_frame' -->
+    <div id="header_title_content">
+      <div class='title-box'>
+        <h1>MRP SUMMARY REPORT</h1>
+      </div>
+    </div>
+
+    
+    <div id="company_title_content">
+      <div class='title-box'>
+        <h2>YOKOYAMA KOGYO (THAILAND) CO.,LTD.</h2>
+      </div>
+    </div>
+
+    <div id="page_no_frame">
+      Page: <pdf:pagenumber>/{{total_pages}}
+    </div>
+
+    <div id="vendor_info" class='label' >
+      <div>
+        Supplier Code: <strong>{{vendForecasts.vendor_no}}</strong>
+      </div>
+      <div>
+        Supplier Name: <strong>{{vendForecasts.vendor_name}}</strong>
+      </div>
+      <div>
+        Address: <strong>{{vendForecasts.vendor_no.address|default_if_none:""}}
+                          {{vendForecasts.vendor_no.city|default_if_none:""}} {{vendForecasts.vendor_no.post_code|default_if_none:""}}
+                  </strong>
+      </div>
+      <div>
+        Tel: <strong>{{vendForecasts.vendor_no.phone_no | default_if_none:""}}</strong>
+      </div>
+    
+    </div>
+    <pdf:language name="th"/>
+    <div id="company_info" class='company-info' >
+      <p id='issue-date'>Issue Date: <strong>{{vendForecasts.created_at|date:"d F Y"}}</strong></p>
+      <p id='comp-info'>
+        <strong>YOKOYAMA KOGYO (THAILAND) CO.,LTD.</strong>
+        Eastern Seaboard Industrial Estate Rayong
+        300/58 Moo 1, T.Tasit, A.Pluakdaeng, Rayong 21140
+        TEL. 038-015-240  FAX. 038-015-242
+      </p>
+    </div>
+    
+    <div id="table_header_content">
+      <table>
+        <thead>
+          <tr style='padding: 4px 6px;'>
+            <th style='width: 40pt; text-align:center;'>KB SD</th>
+            <th >Part No : Part Name</th>
+            <th style='width: 40pt;'>UOM</th>
+            {% for period in periods %}
+            <th style='width: 50pt; text-align:right;'>{{period}}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+      </table>
+    </div>
+
+    <!-- Content for Static Frame 'footer_issue_frame' -->
+    <div id="footer_issue_frame">
+      {% comment %} <div>Issued: <strong>Orasa Burekhan</strong></div> 
+      <div>Approved: <strong>Orasa Burekhan</strong></div> 
+      <div>Processing Time: 01/11/2022 11:00:00</div>  {% endcomment %}
+    </div>
+
+    <div id="footer_approve_frame">
+      {% comment %} <div>Supplier: Receiver</div>  {% endcomment %}
+      <table id='approval-table'>
+        <thead>
+            <tr>
+                <th>Supplier</th>
+                <th colspan="2">YKT</th>
+            </tr>
+            <tr>
+                <th>Received</th>
+                <th>Issued</th>
+                <th>Approved</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style='width: 100pt; height:28pt;'></td>
+                <td style='width: 100pt; height:28pt; color:blue;'>{{vendForecasts.created_by.first_name}}  {{vendForecasts.created_by.last_name}}</td>
+                <td style='width: 100pt; height:28pt; color:blue;'>{{vendForecasts.approved_by.first_name}}  {{vendForecasts.approved_by.last_name}}</td>
+            </tr>
+            <tr style='font-size:10px;'>
+                <td style='width:100pt; height:17pt;'></td>
+                <td style='width:100pt; height:17pt;'>{{vendForecasts.created_at | date:'d/m/Y G:i:s'}}</td>
+                <td style='width:100pt; height:17pt;'>{{vendForecasts.approved_at | date:"d/m/Y G:i:s"}}</td>
+            </tr>
+        </body>
+      </table>
+    </div>
+    
+    <div id="footer_doc_control">
+      <div>Storage Duration 1 Year Document No: YKT-LG-12-001-Rev-01</div> 
+    </div>
+    
+    <table>     
+      {% for vendForecast in vendForecasts.entries.all %}
+      <tr>
+        <td style='width: 40pt; text-align:center;'>{{vendForecast.kb_sd}}</td>
+        <td ><strong>{{vendForecast.item_no}}</strong> <span>{{vendForecast.item_description}}</span> </td>
+        <td style='width: 40pt; text-align:center;'>{{vendForecast.unit_of_measure}}</td>
+        <td style='width: 50pt; text-align:right;'>{{vendForecast.m1_qty|floatformat:"-3g"}}</td>
+        <td style='width: 50pt; text-align:right;'>{{vendForecast.m2_qty|floatformat:"-3g"}}</td>
+        <td style='width: 50pt; text-align:right;'>{{vendForecast.m3_qty|floatformat:"-3g"}}</td>
+        <td style='width: 50pt; text-align:right;'>{{vendForecast.m4_qty|floatformat:"-3g"}}</td>
+      </tr>
+      {% endfor %} 
+
+      {% if blank_rows %}
+        {% for row in blank_rows %}
+      <tr>
+        <td style='width: 40pt; text-align:center;'></td>
+        <td ><strong>{{vendForecast.item_no}}</strong> <span></span> </td>
+        <td style='width: 40pt; text-align:center;'></td>
+        <td style='width: 50pt; text-align:right;'></td>
+        <td style='width: 50pt; text-align:right;'></td>
+        <td style='width: 50pt; text-align:right;'></td>
+        <td style='width: 50pt; text-align:right;'></td>
+      </tr>
+        {% endfor %}
+      {% endif %}
+
+    </table>
+  </body>
+</html>

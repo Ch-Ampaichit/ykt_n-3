@@ -1,14 +1,14 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
-import { url } from "config/api";
+import { auth_url } from "config/api";
 
 export const asyncInitMRPWorksheetPage = createAsyncThunk(
   "application/asyncInitMRPWorksheetPage",
   async () => {
     const token = localStorage.getItem("token");
     const response = await axios
-      .get(url.mrp_page, {
+      .get(auth_url.mrp_page, {
         headers: {
           Authorization: `token ${token}`,
         },
