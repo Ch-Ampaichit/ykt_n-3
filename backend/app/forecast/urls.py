@@ -21,7 +21,10 @@ router.register(r'posted_vendor_forecast', api.PostedVendorForecastHeaderViewSet
                 basename='posted-vendor-forecast')
 router.register(r'vendor_forecast_detail', api.VendForecastHeaderDetailViewSet,
                 basename='vendor-forecast-detail')
-
+router.register(r'person', api.PersonViewSet,
+                basename='person')
+router.register(r'contact', api.ContactViewSet,
+                basename='contact')
 urlpatterns = [
     path('api/', include(router.urls)),
     path('api/mrp_worksheet/', api.mrp_worksheet),

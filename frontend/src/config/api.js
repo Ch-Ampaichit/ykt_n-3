@@ -1,4 +1,5 @@
-const endpoint = "http://fn3.yokoyama.local:8000/";
+// const endpoint = "http://fn3.yokoyama.local:8000/";
+const endpoint = "http://localhost:8000/";
 
 const api_endpoint = endpoint.concat("api/");
 const auth_endpoint = endpoint.concat("auth/");
@@ -26,6 +27,8 @@ export const api_url = {
   gen_vend_forecast: api_endpoint.concat("gen_vend_forecast/"),
   vend_forecast_detail: api_endpoint.concat("vendor_forecast_detail/"),
   mrp_sum_report: api_endpoint.concat("reports/mrp_summary_preview/"),
+  person: api_endpoint.concat("person/"),
+  contacts: api_endpoint.concat("contact/"),
 };
 
 export const report_url = {

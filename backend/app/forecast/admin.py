@@ -53,7 +53,7 @@ class ContactAdmin(admin.ModelAdmin):
 
 @admin.register(Person)
 class PersonAdmin(admin.ModelAdmin):
-    list_display = ['no', 'contact_no',
+    list_display = ['no', 'contact_no', 'nick_name',
                     'first_name', 'last_name', 'email_address']
 
 

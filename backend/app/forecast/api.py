@@ -16,7 +16,7 @@ from xhtml2pdf import pisa
 from .serializers import *
 from .models import *
 
-from knox import auth
+# from knox import auth
 
 
 class PhoneViewSet(viewsets.ModelViewSet):
@@ -39,6 +39,75 @@ class PersonViewSet(viewsets.ModelViewSet):
     queryset = Person.objects.all()
     serializer_class = PersonSerializer
 
+    def update(self, request, *args, **kwargs):
+        # print(f'updateContact: {request.data}')
+        contact_no = request.data.get('contact_no')
+        contact_person = Person.objects.filter(contact_no=contact_no)
+        persons = self.get_serializer(contact_person, many=True).data
+        super().update(request, *args, **kwargs)
+        return Response(persons, status=status.HTTP_202_ACCEPTED)
+
+    @action(methods=['DELETE'], detail=False)
+    def del_selected(self, request, *args, **kwargs):
+        contact = request.data.get('contact')
+        persons = request.data.get('persons')
+
+        if persons is None or contact is None:
+            print(f'persons: {persons}')
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        for ps in persons:
+            ps_no = ps.get('no')
+            person = Person.objects.get(no=ps_no)
+            # print(f'person: {person}')
+            person.delete()
+
+        contact_persons = Person.objects.filter(contact_no=contact)
+        # print(f'contact_persons: {contact_persons}')
+
+        persons_data = self.get_serializer(contact_persons, many=True).data
+
+        return Response(persons_data, status=status.HTTP_200_OK)
+
+    @action(methods=['post'], detail=False)
+    def new_by_contact_no(self, request, *args, **kwargs):
+
+        contact_no = request.data.get('contact_no')
+
+        try:
+            contact = Contact.objects.get(no=contact_no)
+        except:
+            contact, _ = Contact.objects.get_or_create(
+                key=uuid.uuid4(), no=contact_no)
+
+        # collect instance
+        last_person = Person.objects.filter(contact_no=contact_no).last()
+        if last_person is None:
+            next_no = 1
+        else:
+            next_no = int(last_person.no[-3:]) + 1
+
+        # print(
+        #     f'last_person: {last_person}\nnext_no: {next_no}')
+
+        person_no = str(next_no).zfill(3)
+
+        person = Person.objects.create(
+            key=uuid.uuid4(),
+            no=f'{contact_no}-{person_no}',
+            contact_no=contact,
+            first_name=request.data.get('first_name'),
+            last_name=request.data.get('last_name'),
+            nick_name=request.data.get('nick_name'),
+            email_address=request.data.get('email_address')
+        )
+
+        contact.persons.add(person)
+
+        persons = Person.objects.filter(contact_no=contact_no)
+        contact_persons = self.get_serializer(persons, many=True).data
+        return Response(contact_persons, status=status.HTTP_201_CREATED)
+
     @action(methods=['post'], detail=False)
     def import_data(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=True)
@@ -53,6 +122,17 @@ class ContactViewSet(viewsets.ModelViewSet):
 
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        contact_no = kwargs.get('pk')
+
+        try:
+            contact = Contact.objects.get(no=contact_no)
+        except:
+            contact, _ = Contact.objects.get_or_create(
+                key=uuid.uuid4(), no=contact_no)
+
+        return super().retrieve(request, *args, **kwargs)
 
     @action(methods=['post'], detail=False)
     def import_data(self, request, *args, **kwargs):
@@ -174,7 +254,17 @@ class MRPJournalLineViewSet(viewsets.ModelViewSet):
             batch_name=jnl_batch).first()
 
         for data in jnl_line_data:
-            # print(f'data: {data}')
+            print(f'data: {data}')
+
+            vend_no = data.get('vendor_no')
+
+            try:
+                vendor = Vendor.objects.get(no=vend_no)
+            except:
+                vend_name = data.get('vendor_name')
+                vendor, _ = Vendor.objects.get_or_create(
+                    no=vend_no, name=vend_name, key=uuid.uuid4())
+
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
@@ -184,8 +274,8 @@ class MRPJournalLineViewSet(viewsets.ModelViewSet):
 
             mrp_jnl_batch.journal_line.add(mrp_jnl_line)
 
-            vendor = Vendor.objects.get(pk=data['vendor_no'])
-            # print(f'vendor: {vendor}')
+            # print(f'vendor_no: {vendor}')
+
             vend_forecast = VendorForecastBatch.objects.filter(
                 batch_name=jnl_batch, vendor_no=vendor)
 
@@ -194,6 +284,7 @@ class MRPJournalLineViewSet(viewsets.ModelViewSet):
             if vend_forecast.count() == 0:
                 vendor_batch = VendorForecastBatch.objects.create(key=uuid.uuid4(),
                                                                   batch_name=jnl_batch, vendor_no=vendor)
+
                 mrp_jnl_batch.vendor.add(vendor_batch)
 
             mrp_jnl_batch = MRPJournalBatch.objects.filter(
@@ -313,15 +404,21 @@ def generate_vend_forecast(request, *args, **kwargs):
     vends_batch = VendorForecastBatch.objects.all()
 
     for vend in vends_batch:
+        # print(f'vendor: {vend}')
         vfh_no = str(f'{vend.vendor_no}-{period}')
         vend_forecast_h = VendorForecastHeader.objects.filter(
             description=vfh_no).first()
 
+        # try:
+        #     vendor = Vendor.objects.get(no=vend.vendor_no)
+        # except:
+        #     vendor, _ = Vendor.objects.get_or_create(no=vend.vendor_no)
+
         if vend_forecast_h is None:
-            vendor = Vendor.objects.get(no=vend.vendor_no)
+            # vendor = Vendor.objects.get(no=vend.vendor_no)
             vend_forecast_h = VendorForecastHeader.objects.create(
                 key=uuid.uuid4(),
-                vendor_no=vendor,
+                vendor_no=vend.vendor_no,
                 description=vfh_no,
                 starting_period=request.data['starting_period'],
                 ending_period=request.data['ending_period'],
@@ -392,7 +489,7 @@ class VendForecastHeaderDetailViewSet(viewsets.ModelViewSet):
     serializer_class = VendForecastHeaderDetailSerializer
     lookup_field = 'description'
 
-    permission_classes = []
+    # permission_classes = []
 
     @action(['POST'], detail=True)
     def send_email(self, request, *args, **kwargs):
@@ -405,9 +502,20 @@ class VendForecastHeaderDetailViewSet(viewsets.ModelViewSet):
         if not request.user.email:
             return Response({"detail": f"{request.user.username}\'s email From must not be blank!"}, status=status.HTTP_400_BAD_REQUEST)
 
+        contact = Contact.objects.get(no=vendor_forecast.vendor_no)
+        contact_person = contact.persons.all()
+
+        email_to = []
+
+        for person in contact_person:
+            email_to.append(person.email_address)
+
+        # print(
+        #     f'contact: {contact_person} \ncontact_person: {len(contact_person)}')
+
         if vendor_forecast.vendor_no.email is None:
-            # raise APIException("There was a problem!")
-            return Response({"title": "Data required!", 'detail': f'{vendor_forecast.vendor_no.name}({vendor_forecast.vendor_no})\'s email must not be blank!'}, status=status.HTTP_400_BAD_REQUEST)
+            if not email_to:
+                return Response({"title": "Data required!", 'detail': f'{vendor_forecast.vendor_no.name}({vendor_forecast.vendor_no})\'s email must not be blank!'}, status=status.HTTP_400_BAD_REQUEST)
 
         file_name = f'media/{vendor_forecast.description}.pdf'
 
@@ -462,7 +570,10 @@ class VendForecastHeaderDetailViewSet(viewsets.ModelViewSet):
                 return Response({"detail": "There are some problem about pdf file."}, status=status.HTTP_400_BAD_REQUEST)
 
         email_from = request.user.email
-        email_to = [vendor_forecast.vendor_no.email]
+        # email_to = vendor_forecast.vendor_no.email
+        email_to.append(vendor_forecast.vendor_no.email)
+
+        # print(f'email_to : {email_to}')
 
         mail_ctx = {
             "user": request.user

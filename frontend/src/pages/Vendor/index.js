@@ -14,11 +14,19 @@ import {
   Drawer,
   Typography,
   Form,
+  Row,
+  Col,
+  Tabs,
+  // Divider,
+  Modal,
 } from "antd";
 import {
   PlusOutlined,
   DeleteOutlined,
   // SearchOutlined,
+  CloseOutlined,
+  RetweetOutlined,
+  UserAddOutlined,
 } from "@ant-design/icons";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -26,6 +34,9 @@ import {
   asyncLoadVendor,
   asyncUpdateVendor,
 } from "features/application/vendorSlice";
+import { useRef } from "react";
+import axios from "axios";
+import { api_url } from "config/api";
 
 let vendor = {
   address: null,
@@ -45,8 +56,16 @@ const VendorPage = (props) => {
 
   const [form] = Form.useForm();
 
+  const [contactForm] = Form.useForm();
+
   const [vendorDetailVisible, setVendorDetailVisible] = useState(false);
   const [vendorRecord, setVendorRecord] = useState(vendor);
+
+  const [contactModalVisible, setContactModalVisible] = useState(false);
+  const firstNameRef = useRef(null);
+  const lasttNameRef = useRef(null);
+  const emailContactRef = useRef(null);
+  const addContactBtnRef = useRef(null);
 
   const [columns] = useState([
     {
@@ -55,6 +74,8 @@ const VendorPage = (props) => {
       key: "no",
       fixed: true,
       width: 100,
+      // defaultSortOrder: "descend",
+      sortDirections: ["descend"],
       render: (text, record, index) => {
         return <Button type="link">{text}</Button>;
       },
@@ -101,11 +122,24 @@ const VendorPage = (props) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [pageSize, setPageSize] = useState(500);
 
+  const [selectedContactRowKeys, setSelectedContactRowKeys] = useState([]);
+  const [selectedContactRows, setSelectedContactRows] = useState([]);
+  const [modifyContact, setModifyContact] = useState(false);
+
   const dataSource = useSelector((state) => state.vendors.datasource);
+  const [contacts, setContacts] = useState([]);
 
   const status = useSelector((state) => state.vendors.status);
 
   useEffect(() => {
+    // setContacts([
+    //   {
+    //     key: "chatchai",
+    //     first_name: "Chatchai",
+    //     last_name: "Ampaichit",
+    //     email: "chatchai@yokoyama.coth",
+    //   },
+    // ]);
     dispatch(asyncLoadVendor());
     // eslint-disable-next-line
   }, []);
@@ -121,8 +155,92 @@ const VendorPage = (props) => {
     onChange: onSelectChange,
   };
 
+  const getContact = async (vend_no) => {
+    // console.log("api_url.contact: ", api_url.contacts);
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios({
+        method: "get",
+        url: `${api_url.contacts}${vend_no}/`,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `token ${token}`,
+        },
+      });
+      // console.log("contact response: ", response.data.persons);
+      setContacts(response.data.persons);
+    } catch (err) {
+      // console.log("error: ", err);
+      setContacts([]);
+    }
+  };
+
+  const handleCreateContact = async (person) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios({
+        method: "post",
+        url: `${api_url.person}new_by_contact_no/`,
+        data: person,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `token ${token}`,
+        },
+      });
+      // console.log("ContactPerson: ", response.data);
+      setContacts(response.data);
+      contactForm.resetFields();
+    } catch (error) {
+      console.log("ContactPersonError: ", error);
+    }
+  };
+
+  const handleUpdateContact = async (person) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios({
+        method: "put",
+        url: `${api_url.person}${person.no}/`,
+        data: person,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `token ${token}`,
+        },
+      });
+      // console.log("UpdateContactPerson: ", response.data);
+      setContacts(response.data);
+    } catch (error) {
+      console.log("ContactPersonError: ", error);
+    }
+  };
+
+  const handleDeleteContact = async (person) => {
+    // console.log("handleDeleteContact: ", person);
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await axios({
+        method: "delete",
+        url: `${api_url.person}del_selected/`,
+        data: person,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `token ${token}`,
+        },
+      });
+      // console.log("ContactPerson: ", response.data);
+      setContacts(response.data);
+      setSelectedContactRowKeys([]);
+      setSelectedContactRows([]);
+      contactForm.resetFields();
+    } catch (error) {
+      console.log("ContactPersonError: ", error);
+    }
+  };
+
   const handleOnRowClick = (record) => {
     // console.log("handleOnRowClick: ", record);
+    getContact(record.no);
     form.setFieldsValue({
       no: record.no,
       name: record.name,
@@ -135,6 +253,7 @@ const VendorPage = (props) => {
       post_code: record.post_code,
       search_name: "",
     });
+
     setVendorRecord(record);
     setVendorDetailVisible(true);
   };
@@ -225,6 +344,7 @@ const VendorPage = (props) => {
         closable={false}
         onClose={() => {
           setVendorDetailVisible(false);
+          setContacts([]);
         }}
       >
         <Space
@@ -235,59 +355,349 @@ const VendorPage = (props) => {
             display: "flex",
           }}
         >
+          <Tabs defaultActiveKey="gen_tab" tabBarExtraContent={<Space></Space>}>
+            <Tabs.TabPane tab="General" key={"gen_tab"}>
+              <Form
+                form={form}
+                labelAlign="left"
+                // onFieldsChange={(_, allFileds) => {
+                //   console.log("allField: ", allFileds);
+                // }}
+                onFinish={(value) => {
+                  handleChageVendor(value);
+                }}
+              >
+                <Form.Item labelCol={{ span: 3 }} label={"Name"} name={"name"}>
+                  <Input />
+                </Form.Item>
+
+                <Form.Item
+                  labelCol={{ span: 3 }}
+                  label={"Address"}
+                  name={"address"}
+                >
+                  <Input />
+                </Form.Item>
+
+                <Form.Item
+                  labelCol={{ span: 3 }}
+                  label={"Address 2"}
+                  name={"address_2"}
+                >
+                  <Input />
+                </Form.Item>
+
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      labelCol={{ span: 6 }}
+                      label={"City"}
+                      name={"city"}
+                    >
+                      <Input />
+                    </Form.Item>
+                  </Col>
+
+                  <Col span={12}>
+                    <Form.Item label={"Post Code"} name={"post_code"}>
+                      <Input />
+                    </Form.Item>
+                  </Col>
+                </Row>
+
+                <Form.Item
+                  labelCol={{ span: 3 }}
+                  label={"Phone No."}
+                  name={"phone_no"}
+                >
+                  <Input />
+                </Form.Item>
+
+                <Form.Item
+                  labelCol={{ span: 3 }}
+                  label={"Email"}
+                  name={"email"}
+                  rules={[
+                    {
+                      type: "email",
+                    },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+
+                <Form.Item
+                  wrapperCol={{
+                    offset: 12,
+                  }}
+                >
+                  <Button type="primary" htmlType="submit">
+                    Save
+                  </Button>
+                </Form.Item>
+              </Form>
+            </Tabs.TabPane>
+
+            <Tabs.TabPane tab={"Contact"} key={"contact_tab"}>
+              <Row gutter={[16, 16]}>
+                <Col span={24}>
+                  <Row justify="end" gutter={10}>
+                    <Col>
+                      <Button
+                        type="primary"
+                        icon={<UserAddOutlined />}
+                        onClick={() => {
+                          // console.log("currRec: ", vendorRecord.no);
+                          setModifyContact(false);
+                          setContactModalVisible(true);
+                          contactForm.resetFields();
+                          // firstNameRef.current.focus({ cursor: "end" });
+                        }}
+                      >
+                        New
+                      </Button>
+                    </Col>
+
+                    <Col>
+                      <Button
+                        type="primary"
+                        danger
+                        icon={<DeleteOutlined />}
+                        disabled={selectedContactRowKeys.length === 0}
+                        onClick={() => {
+                          const person = {
+                            contact: vendorRecord.no,
+                            persons: selectedContactRows,
+                          };
+                          handleDeleteContact(person);
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </Col>
+                  </Row>
+                </Col>
+
+                <Col>
+                  <Table
+                    size="small"
+                    bordered
+                    columns={[
+                      {
+                        title: "Code",
+                        dataIndex: "no",
+                        align: "left",
+                        width: "15%",
+                      },
+                      {
+                        title: "Nick name",
+                        dataIndex: "nick_name",
+                        align: "left",
+                        width: "20%",
+                      },
+                      {
+                        title: "Name",
+                        // dataIndex: "first_name",
+                        align: "left",
+                        // width: "20%",
+                        render: (txt, rec) => {
+                          return `${rec.first_name}  ${
+                            rec.last_name ? rec.last_name : ""
+                          }`;
+                        },
+                      },
+                      {
+                        title: "Email",
+                        dataIndex: "email_address",
+                        // width: "30%",
+                        render: (txt) => {
+                          return <Button type="link">{txt}</Button>;
+                        },
+                      },
+                    ]}
+                    dataSource={contacts}
+                    rowSelection={{
+                      selectedRowKeys: selectedContactRowKeys,
+                      onChange: (slKeys, slRows) => {
+                        setSelectedContactRowKeys(slKeys);
+                        setSelectedContactRows(slRows);
+                        // console.log(
+                        //   "selectedRowsKey: ",
+                        //   slKeys,
+                        //   "\nslRows: ",
+                        //   slRows
+                        // );
+                      },
+                    }}
+                    scroll={{ x: 700, y: 400 }}
+                    onRow={(row) => {
+                      return {
+                        onClick: () => {
+                          setModifyContact(true);
+                          contactForm.setFieldsValue({
+                            no: row.no,
+                            first_name: row.first_name,
+                            last_name: row.last_name,
+                            nick_name: row.nick_name,
+                            email_address: row.email_address,
+                          });
+                          setContactModalVisible(true);
+                        },
+                      };
+                    }}
+                  />
+                </Col>
+              </Row>
+            </Tabs.TabPane>
+          </Tabs>
+        </Space>
+
+        <Modal
+          style={{ marginLeft: 100 }}
+          footer={null}
+          visible={contactModalVisible}
+          title="New Contact"
+          onCancel={() => {
+            setContactModalVisible(false);
+          }}
+        >
           <Form
-            form={form}
+            // layout="inline"
+            name="contact_form"
+            form={contactForm}
+            onFinish={(val) => {
+              const person = {
+                no: val.no,
+                contact_no: vendorRecord.no,
+                nick_name: val.nick_name,
+                first_name: val.first_name,
+                last_name: val.last_name,
+                email_address: val.email_address,
+              };
+              // console.log("OnFinish \nperson: ", person);
+              if (modifyContact === false) {
+                handleCreateContact(person);
+              } else {
+                handleUpdateContact(person);
+              }
+            }}
+            labelCol={{ span: 5 }}
             labelAlign="left"
-            labelCol={{
-              span: 3,
-            }}
-            // onFieldsChange={(_, allFileds) => {
-            //   console.log("allField: ", allFileds);
-            // }}
-            onFinish={(value) => {
-              handleChageVendor(value);
-            }}
           >
-            <Form.Item label={"Name"} name={"name"}>
-              <Input />
-            </Form.Item>
-            <Form.Item label={"Address"} name={"address"}>
-              <Input />
-            </Form.Item>
-            <Form.Item label={"Address 2"} name={"address_2"}>
-              <Input />
-            </Form.Item>
-            <Form.Item label={"City"} name={"city"}>
-              <Input />
-            </Form.Item>
-            <Form.Item label={"Post Code"} name={"post_code"}>
-              <Input />
-            </Form.Item>
-            <Form.Item label={"Phone No."} name={"phone_no"}>
-              <Input />
-            </Form.Item>
             <Form.Item
-              label={"Email"}
-              name={"email"}
+              name={"no"}
+              label="Code"
+              // rules={[{ required: true }]}
+              hidden
+            >
+              <Input placeholder="Short name" />
+            </Form.Item>
+
+            <Form.Item
+              name="first_name"
+              label="First name"
               rules={[
                 {
-                  type: "email",
+                  required: true,
+                  message: "First name is require.",
                 },
               ]}
             >
+              <Input
+                ref={firstNameRef}
+                onPressEnter={() => {
+                  lasttNameRef.current.focus({
+                    cursor: "end",
+                  });
+                }}
+                placeholder="First name"
+              />
+            </Form.Item>
+
+            <Form.Item name="last_name" label="Last name">
+              <Input
+                ref={lasttNameRef}
+                onPressEnter={() =>
+                  emailContactRef.current.focus({
+                    cursor: "end",
+                  })
+                }
+                placeholder="Last name"
+              />
+            </Form.Item>
+            <Form.Item name={"nick_name"} label="Nick name">
               <Input />
             </Form.Item>
+
             <Form.Item
-              wrapperCol={{
-                offset: 12,
-              }}
+              name="email_address"
+              label="Email"
+              rules={[
+                {
+                  type: "email",
+                  required: true,
+                  message: "The input is not valid E-mail!",
+                },
+              ]}
             >
-              <Button type="primary" htmlType="submit">
-                Save
-              </Button>
+              <Input
+                ref={emailContactRef}
+                // onPressEnter={() => {
+                //   addContactBtnRef.current.focus();
+                // }}
+                placeholder="Email"
+              />
             </Form.Item>
+            <Row gutter={16}>
+              <Col span={14}>
+                {" "}
+                <Form.Item shouldUpdate wrapperCol={{ offset: 8 }}>
+                  {() => (
+                    <Button
+                      ref={addContactBtnRef}
+                      icon={<UserAddOutlined />}
+                      style={{ width: "100%" }}
+                      type="primary"
+                      htmlType="submit"
+                      // disabled={!contactForm.isFieldsTouched(true)}
+                      // onClick={() => {
+                      //   const data = contactForm.getFieldsValue();
+                      //   console.log("data: ", data);
+                      //   contactForm.resetFields();
+                      // }}
+                    >
+                      {modifyContact ? "Save" : "Add"}
+                    </Button>
+                  )}
+                </Form.Item>
+              </Col>
+              <Col span={10}>
+                <Form.Item>
+                  {modifyContact ? (
+                    <Button
+                      // type="primary"
+                      icon={<CloseOutlined />}
+                      style={{ width: "100%" }}
+                      onClick={() => setContactModalVisible(false)}
+                    >
+                      Close
+                    </Button>
+                  ) : (
+                    <Button
+                      icon={<RetweetOutlined />}
+                      onClick={() => {
+                        contactForm.resetFields();
+                      }}
+                      style={{ width: "100%" }}
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </Form.Item>
+              </Col>
+            </Row>
           </Form>
-        </Space>
+        </Modal>
       </Drawer>
     </div>
   );

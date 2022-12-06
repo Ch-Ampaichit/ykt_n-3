@@ -21,7 +21,8 @@ class ContactSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contact
-        fields = '__all__'
+        fields = ['key', 'no', 'persons']
+        depth = 1
 
 
 class VendorForecastHeaderSerializer(serializers.ModelSerializer):

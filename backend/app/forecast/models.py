@@ -137,6 +137,12 @@ class Person(models.Model):
 
     def save(self, *args, **kwargs):
         self.no = self.no.upper()
+        if self.first_name:
+            self.first_name = self.first_name.capitalize()
+        if self.last_name:
+            self.last_name = self.last_name.capitalize()
+        if self.nick_name:
+            self.nick_name = self.nick_name.upper()
         super().save(*args, **kwargs)
 
     class Meta:
