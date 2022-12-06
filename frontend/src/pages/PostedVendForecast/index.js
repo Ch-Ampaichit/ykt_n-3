@@ -27,11 +27,14 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   asyncInitPageData,
   asyncSetCurrRec,
-  asyncSendEmail,
+  // asyncSendEmail,
   setModalVisible,
 } from "features/application/postedVendForecastSlice";
 import * as XLSX from "xlsx";
 import { report_url } from "config";
+import axios from "axios";
+
+import { api_url } from "config/api";
 
 const PostedVendForecastPage = () => {
   const dispatch = useDispatch();
@@ -75,12 +78,6 @@ const PostedVendForecastPage = () => {
     // eslint-disable-next-line
   }, []);
 
-  useEffect(() => {
-    if (mail_status === "Idle") {
-      message.success("You already sent email.");
-    }
-  }, [mail_status]);
-
   const handleOnRow = (rec, rowIndex) => {
     return {
       onClick: () => {
@@ -120,8 +117,26 @@ const PostedVendForecastPage = () => {
     XLSX.writeFile(wb, currRec.header.description + ".xlsx");
   };
 
-  const handleSendEmail = () => {
-    dispatch(asyncSendEmail(currRec.header.description));
+  const handleSendEmail = async () => {
+    // dispatch(asyncSendEmail(currRec.header.description));
+
+    const token = localStorage.getItem("token");
+    try {
+      await axios({
+        method: "Post",
+        url: `${api_url.posted_vendor_forecast}${currRec.header.description}/send_email/`,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `token ${token}`,
+        },
+      });
+      // console.log("response: ", resp);
+      message.success("You already sent email.");
+      // return resp.data;
+    } catch (err) {
+      // console.log("Error: ", err.response);
+      message.error(err.response.data.detail);
+    }
   };
 
   return (

@@ -513,9 +513,8 @@ class VendForecastHeaderDetailViewSet(viewsets.ModelViewSet):
         # print(
         #     f'contact: {contact_person} \ncontact_person: {len(contact_person)}')
 
-        if vendor_forecast.vendor_no.email is None:
-            if not email_to:
-                return Response({"title": "Data required!", 'detail': f'{vendor_forecast.vendor_no.name}({vendor_forecast.vendor_no})\'s email or Contact must not be blank!'}, status=status.HTTP_400_BAD_REQUEST)
+        if (not vendor_forecast.vendor_no.email) and (not email_to):
+            return Response({"title": "Data required!", 'detail': f'{vendor_forecast.vendor_no.name}({vendor_forecast.vendor_no})\'s email or Contact must not be blank!'}, status=status.HTTP_400_BAD_REQUEST)
 
         file_name = f'media/{vendor_forecast.description}.pdf'
 
@@ -668,11 +667,10 @@ class PostedVendorForecastHeaderViewSet(viewsets.ModelViewSet):
             email_to.append(person.email_address)
 
         # print(
-        #     f'contact: {contact_person} \ncontact_person: {len(contact_person)}')
+        #     f'pvfvh.vendor_no.email: {not pvfvh.vendor_no.email} \n  contact: {contact_person} \n  contact_person: {len(contact_person)}\n  email_to: {email_to}')
 
-        if pvfvh.vendor_no.email is None:
-            if not email_to:
-                return Response({"title": "Data required!", 'detail': f'{pvfvh.vendor_no.name}({pvfvh.vendor_no})\'s email or Contact must not be blank!'}, status=status.HTTP_400_BAD_REQUEST)
+        if (not pvfvh.vendor_no.email) and (not email_to):
+            return Response({"title": "Data required!", 'detail': f'{pvfvh.vendor_no.name}({pvfvh.vendor_no})\'s email or Contact must not be blank!'}, status=status.HTTP_400_BAD_REQUEST)
 
         file_name = f'media/{pvfvh.description}.pdf'
 
