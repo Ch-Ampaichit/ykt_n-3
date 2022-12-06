@@ -515,7 +515,7 @@ class VendForecastHeaderDetailViewSet(viewsets.ModelViewSet):
 
         if vendor_forecast.vendor_no.email is None:
             if not email_to:
-                return Response({"title": "Data required!", 'detail': f'{vendor_forecast.vendor_no.name}({vendor_forecast.vendor_no})\'s email must not be blank!'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"title": "Data required!", 'detail': f'{vendor_forecast.vendor_no.name}({vendor_forecast.vendor_no})\'s email or Contact must not be blank!'}, status=status.HTTP_400_BAD_REQUEST)
 
         file_name = f'media/{vendor_forecast.description}.pdf'
 
@@ -659,10 +659,26 @@ class PostedVendorForecastHeaderViewSet(viewsets.ModelViewSet):
     def send_email(self, request, *args, **kwargs):
         pvfvh = self.get_object()
 
+        contact = Contact.objects.get(no=pvfvh.vendor_no)
+        contact_person = contact.persons.all()
+
+        email_to = []
+
+        for person in contact_person:
+            email_to.append(person.email_address)
+
+        # print(
+        #     f'contact: {contact_person} \ncontact_person: {len(contact_person)}')
+
+        if pvfvh.vendor_no.email is None:
+            if not email_to:
+                return Response({"title": "Data required!", 'detail': f'{pvfvh.vendor_no.name}({pvfvh.vendor_no})\'s email or Contact must not be blank!'}, status=status.HTTP_400_BAD_REQUEST)
+
         file_name = f'media/{pvfvh.description}.pdf'
 
         email_from = request.user.email
-        email_to = [pvfvh.vendor_no.email]
+        # email_to = [pvfvh.vendor_no.email]
+        email_to.append(pvfvh.vendor_no.email)
 
         mail_ctx = {
             "user": request.user
